@@ -1,0 +1,50 @@
+Função saveDynamoDB no Lambda:
+import json
+import uuid
+import boto3
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('contatos')
+
+def lambda_handler(event, context):
+    # Acessa diretamente os campos do JSON recebido
+    firstName = event.get('firstName')
+    lastName = event.get('lastName')
+
+    if not firstName or not lastName:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({
+                'message': 'Nome e sobrenome são obrigatórios'
+          })
+        }
+
+    item = {
+        'id': str(uuid.uuid4()),
+        'firstName': firstName,
+        'lastName': lastName
+    }
+
+    try:
+        table.put_item(Item=item)
+        return {
+             'statusCode': 200,
+               'body': json.dumps({
+                'message': 'Salvo com sucesso'
+            })
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'message': 'Erro ao salvar no DynamoDB',
+                'error': str(e)
+            })
+        }
+Test para a Função:
+{
+  "firstName": "João",
+  "lastName": "Silva"
+}
+Resposta do Teste deve ser um código 200
+
